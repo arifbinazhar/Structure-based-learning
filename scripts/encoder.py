@@ -2,9 +2,6 @@ import numpy as np
 import pickle
 
 
-# -----------------------------------
-# Encode Graph
-# -----------------------------------
 
 def encode_graph(G):
 
@@ -14,49 +11,33 @@ def encode_graph(G):
 
     node_mapping = {}
 
-    # -----------------------------
-    # Create Stable Node Mapping
-    # -----------------------------
 
     for new_idx, node in enumerate(G.nodes()):
 
         node_mapping[node] = new_idx
 
-    # -----------------------------
-    # Encode Node Features
-    # -----------------------------
 
     for node in G.nodes(data=True):
 
         node_id = node[0]
         attrs = node[1]
-
-        # Coordinates
         coord = attrs["ca_coord"]
 
         if coord is None:
             coord = [0.0, 0.0, 0.0]
 
-        # Feature Vector
         feature_vector = []
 
-        # Physicochemical Features
         feature_vector.append(attrs["hydrophobicity"])
         feature_vector.append(attrs["charge"])
         feature_vector.append(attrs["polarity"])
-
-        # Coordinates
         feature_vector.extend(coord)
-
-        # One-hot encoding
+        
         feature_vector.extend(attrs["one_hot_encoding"])
 
         node_features.append(feature_vector)
 
-    # -----------------------------
-    # Encode Edges
-    # -----------------------------
-
+    # encoder
     for edge in G.edges(data=True):
 
         source = node_mapping[edge[0]]
@@ -64,10 +45,7 @@ def encode_graph(G):
 
         edge_attr = edge[2]
 
-        # Edge index
         edge_index.append([source, target])
-
-        # Edge features
         edge_feature_vector = [
 
             edge_attr["distance"],
@@ -76,19 +54,10 @@ def encode_graph(G):
 
         edge_features.append(edge_feature_vector)
 
-    # -----------------------------
-    # Convert to NumPy Arrays
-    # -----------------------------
-
+    #numpy array
     node_features = np.array(node_features, dtype=np.float32)
-
     edge_index = np.array(edge_index, dtype=np.int64).T
-
     edge_features = np.array(edge_features, dtype=np.float32)
-
-    # -----------------------------
-    # Final Encoded Representation
-    # -----------------------------
 
     encoded_data = {
 
@@ -105,11 +74,6 @@ def encode_graph(G):
 
     return encoded_data
 
-
-# -----------------------------------
-# Save Encoded Data
-# -----------------------------------
-
 def save_encoded_data(encoded_data,
                       filename="outputs/encoded_graph.pkl"):
 
@@ -117,11 +81,6 @@ def save_encoded_data(encoded_data,
         pickle.dump(encoded_data, f)
 
     print(f"\nEncoded graph saved to: {filename}")
-
-
-# -----------------------------------
-# Load Encoded Data
-# -----------------------------------
 
 def load_encoded_data(filename="outputs/encoded_graph.pkl"):
 
@@ -131,11 +90,6 @@ def load_encoded_data(filename="outputs/encoded_graph.pkl"):
     print(f"\nEncoded graph loaded from: {filename}")
 
     return encoded_data
-
-
-# -----------------------------------
-# Print Encoding Summary
-# -----------------------------------
 
 def print_encoding_summary(encoded_data):
 
@@ -160,16 +114,10 @@ def print_encoding_summary(encoded_data):
     print(f"Number of Nodes: {encoded_data['num_nodes']}")
     print(f"Number of Edges: {encoded_data['num_edges']}")
 
-
-# -----------------------------------
-# Example Testing
-# -----------------------------------
-
 if __name__ == "__main__":
 
     import networkx as nx
 
-    # Create dummy graph
     G = nx.Graph()
 
     G.add_node(
@@ -204,16 +152,11 @@ if __name__ == "__main__":
         sequence_distance=1
     )
 
-    # Encode
     encoded = encode_graph(G)
 
-    # Print summary
     print_encoding_summary(encoded)
-
-    # Save
     save_encoded_data(encoded)
 
-    # Reload
     loaded = load_encoded_data()
 
     print("\nEncoding successful!")
