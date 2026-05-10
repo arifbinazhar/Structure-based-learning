@@ -1,13 +1,13 @@
-# 🧬 Structure-Based Feature Engineering — SARS-CoV-2 Mᵖʳᵒ (7RFW)
+# Structure-Based Feature Engineering on SARS-CoV-2 Mᵖʳᵒ (7RFW)
 
 > Feature extraction, graph encoding, and lossless decoding pipeline for structure-based generative drug discovery.  
 > Built for the **Medvolt Tech** ML Engineering Assignment.
 
 ---
 
-## The Problem, in One Sentence
+## The Problem Statement
 
-A protein structure is a 3D point cloud with chemistry attached. Generative models can't eat PDB files — this pipeline converts one into a machine-learning-ready graph and back again, with zero information loss.
+A protein structure is a 3D compound with chemistry in it. Generative models fail to read PDB files. Through this pipeline we aim to convert PDB structure into a machine-learning ready encodings and decoding it back with zero or minimum information loss.
 
 ---
 
@@ -16,24 +16,18 @@ A protein structure is a 3D point cloud with chemistry attached. Generative mode
 ```
 ├── data/
 │   └── 7rfw.pdb                  # SARS-CoV-2 Main Protease + Nirmatrelvir (PDB)
-├── scripts/
-│   ├── analysis.py               # PDB parsing via BioPython
-│   ├── feature_extractor.py      # Physicochemical feature computation
-│   ├── distance_graph.py         # Cα contact graph construction (8 Å cutoff)
-│   ├── encoder.py                # Graph → NumPy tensor encoding
-│   ├── decoder.py                # Encoded tensors → NetworkX graph
-│   ├── validator.py              # RMSD, residue recovery, graph statistics
-│   └── main.py                   # End-to-end pipeline runner
 ├── outputs/
 │   └── encoded_graph.pkl         # Serialised encoded representation
+├── scripts/
+│   ├── analysis.py               # PDB parsing using BioPython
+|   ├── decoder.py                # Encoded tensors to NetworkX graph
+│   ├── distance_graph.py         # Cα contact graph construction (8 Å cutoff)
+│   ├── encoder.py                # Graph to NumPy tensor encoding
+│   ├── feature_extractor.py      # Physicochemical feature computation
+│   ├── main.py                   # End-to-end pipeline runner
+│   └── validator.py              # RMSD, residue recovery, graph statistics
 └── requirements.txt
 ```
-
----
-
-## Why This Protein?
-
-**7RFW** is the crystal structure of the SARS-CoV-2 main protease (Mᵖʳᵒ / 3CLᵖʳᵒ) covalently bound to **Nirmatrelvir** — the active compound in Paxlovid. At 1.73 Å resolution, it's one of the highest-quality Mᵖʳᵒ structures available and a canonical target for structure-based drug discovery. The catalytic dyad (His41–Cys145) and the covalent inhibitor bond make it a demanding and realistic test for any structural feature pipeline.
 
 ---
 
@@ -41,11 +35,11 @@ A protein structure is a 3D point cloud with chemistry attached. Generative mode
 
 ### Residue-Level (Why Not Atom-Level?)
 
-Residue-level representations are chosen deliberately:
+Residue-level representations are chosen because:
 
 | Consideration | Atom-level | Residue-level (chosen) |
 |---|---|---|
-| Generative model input size | O(N_atoms) — very large | O(N_residues) — tractable |
+| Generative model input size | The input size will be very large | The input size will be comparitively smaller|
 | Noise sensitivity | High (side-chain flexibility) | Low (Cα is stable backbone anchor) |
 | Transferability across proteins | Poor | Strong |
 | Interpretability | Low | High |
@@ -54,7 +48,7 @@ Residue-level representations are chosen deliberately:
 
 | Feature | Dim | Source |
 |---|---|---|
-| Hydrophobicity | 1 | Kyte-Doolittle scale |
+| Hydrophobicity | 1 | Kyte-Doolittle scale was used |
 | Formal charge at pH 7 | 1 | Standard biochemistry |
 | Polarity flag | 1 | Standard biochemistry |
 | Cα coordinates (x, y, z) | 3 | PDB ATOM records |
@@ -64,7 +58,7 @@ Residue-level representations are chosen deliberately:
 
 ### Edge Features (Contact Graph)
 
-Edges connect residues whose Cα atoms are within **8 Å** — a well-established threshold that captures both covalent-adjacent and non-covalent spatial interactions relevant to binding pockets and allosteric networks.
+Edges connect residues whose Cα atoms are within **8 Å**. This is a well-established threshold that captures both covalent-adjacent and non-covalent spatial interactions relevant to binding pockets and allosteric networks.
 
 | Edge Feature | Description |
 |---|---|
@@ -103,7 +97,7 @@ PDB File
 
 ## Encoding Format
 
-The encoded output is a dictionary of NumPy arrays — directly consumable by PyTorch Geometric, DGL, or any GNN framework:
+The encoded output is a dictionary of NumPy arrays that is directly consumable by PyTorch Geometric, DGL, or any GNN framework:
 
 ```python
 {
@@ -124,10 +118,10 @@ This format maps directly to `torch_geometric.data.Data` with no transformation 
 The decoder is **lossless by construction** — no dimensionality reduction or compression is applied. The encoding is a bijective mapping from graph → tensors, so decoding inverts it exactly:
 
 - Residue identity recovered via `argmax` over the one-hot slice → 100% accuracy
-- Coordinates recovered directly from feature vector slots 3–5 → RMSD = 0.0 Å
+- Coordinates recovered directly from feature vector index 3-5 → RMSD = 0.0 Å
 - Graph topology recovered from edge index → exact edge match
 
-This is intentional: the encoded representation is designed as input to a *downstream* generative model (e.g. a graph VAE or SE(3)-equivariant network), not as a compressed latent itself. The encoding is the input; the latent space lives in the model.
+This is intentional: the encoded representation is designed as input to a *downstream* generative model, not as a compressed latent itself. The encoding is the input; the latent space lives in the model.
 
 ---
 
@@ -158,7 +152,7 @@ PIPELINE COMPLETED SUCCESSFULLY
 |---|---|
 | Node count match | ✅ |
 | Edge count match | ✅ |
-| Residue identity recovery | 100% |
+| Residue identity recovery | 99.67% |
 | Coordinate RMSD | 0.0000 Å |
 | Graph density preserved | ✅ |
 | Avg degree preserved | ✅ |
@@ -191,7 +185,7 @@ networkx
 scipy
 ```
 
-No deep learning framework required to run the pipeline. The output format is framework-agnostic.
+No deep learning framework required to run the pipeline.
 
 ---
 
