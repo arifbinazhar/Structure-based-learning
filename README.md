@@ -1,0 +1,2 @@
+# Structure-based-learning
+In structure-based generative drug discovery, the quality of representations derived from protein structures directly impacts downstream learning tasks. Before model selection or training, robust feature extraction and encoding pipelines are critical to ensure that structural, chemical, and geometric information is captured in a machine-readable and generative-friendly format. This repository focuses exclusively on feature extraction, representation design, and encoding-decoding logic, not on model architecture or training.
